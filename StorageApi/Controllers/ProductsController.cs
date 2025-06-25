@@ -6,11 +6,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StorageApi.Data;
-using StorageApi.Models;
+using StorageApi.Models.Entities;
+using StorageApi.Models.Dtos;
 
 namespace StorageApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/products")]
     [ApiController]
     public class ProductsController : ControllerBase
     {
@@ -23,14 +24,23 @@ namespace StorageApi.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProduct()
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProduct()
         {
-            return await _context.Product.ToListAsync();
+            var products = await _context.Product.ToListAsync();
+            var dtos = products.Select(p => new ProductDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Price = p.Price,
+                Count = p.Count,
+            }).ToList();
+
+            return dtos;
         }
 
         // GET: api/Products/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
+        public async Task<ActionResult<ProductDto>> GetProduct(int id)
         {
             var product = await _context.Product.FindAsync(id);
 
@@ -39,18 +49,29 @@ namespace StorageApi.Controllers
                 return NotFound();
             }
 
-            return product;
+            return new ProductDto { Id = product.Id, Name = product.Name, Count = product.Count, Price = product.Price };
         }
 
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(int id, Product product)
+        public async Task<IActionResult> PutProduct(int id, UpdateProductDto productDto)
         {
-            if (id != product.Id)
+            if (id != productDto.Id)
             {
                 return BadRequest();
             }
+
+            var product = new Product
+            {
+                Id = productDto.Id,
+                Name = productDto.Name,
+                Price = productDto.Price,
+                Category = productDto.Category,
+                Shelf = productDto.Shelf,
+                Count = productDto.Count,
+                Description = productDto.Description
+            };
 
             _context.Entry(product).State = EntityState.Modified;
 
@@ -76,8 +97,17 @@ namespace StorageApi.Controllers
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
+        public async Task<ActionResult<Product>> PostProduct(CreateProductDto productDto)
         {
+            var product = new Product { 
+                Name = productDto.Name,
+                Price = productDto.Price,
+                Category = productDto.Category,
+                Description = productDto.Description,
+                Count = productDto.Count,
+                Shelf = productDto.Shelf
+            };
+           
             _context.Product.Add(product);
             await _context.SaveChangesAsync();
 
