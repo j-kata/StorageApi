@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using StorageApi.Models;
+using StorageApi.Models.Entities;
 
 namespace StorageApi.Data
 {
@@ -14,6 +14,6 @@ namespace StorageApi.Data
         {
         }
 
-        public DbSet<StorageApi.Models.Product> Product { get; set; } = default!;
+        public DbSet<Product> Product { get; set; } = default!;
     }
 }
