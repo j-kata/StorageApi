@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using StorageApi.Data;
 using StorageApi.Models.Entities;
 using StorageApi.Models.Dtos;
+using StorageApi.Mappings;
 
 namespace StorageApi.Controllers
 {
@@ -27,13 +28,7 @@ namespace StorageApi.Controllers
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetProduct()
         {
             var products = await _context.Product.ToListAsync();
-            var dtos = products.Select(p => new ProductDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Price = p.Price,
-                Count = p.Count,
-            }).ToList();
+            var dtos = products.Select(p => ProductMappings.FromEntity(p)).ToList();
 
             return dtos;
         }
@@ -49,7 +44,7 @@ namespace StorageApi.Controllers
                 return NotFound();
             }
 
-            return new ProductDto { Id = product.Id, Name = product.Name, Count = product.Count, Price = product.Price };
+            return ProductMappings.FromEntity(product);
         }
 
         // PUT: api/Products/5
@@ -62,16 +57,7 @@ namespace StorageApi.Controllers
                 return BadRequest();
             }
 
-            var product = new Product
-            {
-                Id = productDto.Id,
-                Name = productDto.Name,
-                Price = productDto.Price,
-                Category = productDto.Category,
-                Shelf = productDto.Shelf,
-                Count = productDto.Count,
-                Description = productDto.Description
-            };
+            var product = ProductMappings.ToEntity(productDto);
 
             _context.Entry(product).State = EntityState.Modified;
 
@@ -99,15 +85,8 @@ namespace StorageApi.Controllers
         [HttpPost]
         public async Task<ActionResult<Product>> PostProduct(CreateProductDto productDto)
         {
-            var product = new Product { 
-                Name = productDto.Name,
-                Price = productDto.Price,
-                Category = productDto.Category,
-                Description = productDto.Description,
-                Count = productDto.Count,
-                Shelf = productDto.Shelf
-            };
-           
+            var product = ProductMappings.ToEntity(productDto);
+
             _context.Product.Add(product);
             await _context.SaveChangesAsync();
 
