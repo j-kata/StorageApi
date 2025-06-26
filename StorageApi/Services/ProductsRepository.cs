@@ -13,7 +13,7 @@ namespace StorageApi.Services
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<IEnumerable<Product>> GetFilteredProductsAsync(string? category, string? name)
+        public IQueryable<Product> GetFilteredProductsAsync(string? category, string? name)
         {
             IQueryable<Product> products = _context.Product;
             if (!string.IsNullOrWhiteSpace(category))
@@ -21,7 +21,7 @@ namespace StorageApi.Services
             if (!string.IsNullOrWhiteSpace(name))
                 products = products.Where(p => p.Name == name);
 
-            return await products.ToListAsync();
+            return products;
         }
 
         public async Task<Product?> GetProductAsync(int id)

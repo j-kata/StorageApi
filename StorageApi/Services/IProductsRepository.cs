@@ -4,7 +4,7 @@ namespace StorageApi.Services
 {
     public interface IProductsRepository
     {
-        public Task<IEnumerable<Product>> GetFilteredProductsAsync(string? category, string? name);
+        public IQueryable<Product> GetFilteredProductsAsync(string? category, string? name);
         public Task<Product?> GetProductAsync(int id);
         public void AddProduct(Product product);
         public void RemoveProduct(Product product);

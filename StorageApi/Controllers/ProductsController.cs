@@ -26,10 +26,9 @@ namespace StorageApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetProduct(string? category, string? name)
         {
-            var products = await _repository.GetFilteredProductsAsync(category, name);
+            var products = await _repository.GetFilteredProductsAsync(category, name).ToListAsync();
             return Ok(_mapper.Map<IEnumerable<ProductDto>>(products));
         }
-
 
         // GET: api/Products/5
         [HttpGet("{id}")]
@@ -43,27 +42,21 @@ namespace StorageApi.Controllers
             return Ok(_mapper.Map<ProductDto>(product));
         }
 
-        // // GET: api/Products/stats
-        // [HttpGet("stats")]
-        // public async Task<ActionResult<ProductsStatDto>> GetProductStats()
-        // {
-        //     var products = await _context.Product.ToListAsync();
-        //     if (products.Count == 0)
-        //     {
-        //         return new ProductsStatDto { TotalPrice = 0, AveragePrice = 0, TotalCount = 0 };
-        //     }
+        // GET: api/Products/stats
+        [HttpGet("stats")]
+        public async Task<ActionResult<ProductStatsDto>> GetProductStats(string? category, string? name)
+        {
+            var stats = await _repository.GetFilteredProductsAsync(category, name)
+                .GroupBy(p => 1)
+                .Select(g => new ProductStatsDto
+                {
+                    TotalCount = g.Sum(p => p.Count),
+                    TotalPrice = g.Sum(p => p.Price * p.Count),
+                    AveragePrice = g.Average(p => p.Price)
+                }).FirstOrDefaultAsync();
 
-        //     var productsCount = products.Sum(product => product.Count);
-        //     var priceTotal = products.Aggregate(0, (sum, product) => sum + product.Price * product.Count);
-        //     var priceAverage = priceTotal / productsCount;
-
-        //     return new ProductsStatDto
-        //     {
-        //         TotalPrice = priceTotal,
-        //         AveragePrice = priceAverage,
-        //         TotalCount = productsCount,
-        //     };
-        // }
+            return stats ?? new ProductStatsDto();
+        }
 
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
