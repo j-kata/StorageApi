@@ -22,9 +22,9 @@ namespace StorageApi.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProduct(string? category, string? name)
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts(string? category, string? name)
         {
-            var products = await _repository.GetFilteredProductsAsync(category, name).ToListAsync();
+            var products = await _repository.GetFilteredProducts(category, name).ToListAsync();
             return Ok(_mapper.Map<IEnumerable<ProductDto>>(products));
         }
 
@@ -44,7 +44,7 @@ namespace StorageApi.Controllers
         [HttpGet("stats")]
         public async Task<ActionResult<ProductStatsDto>> GetProductStats(string? category, string? name)
         {
-            var stats = await _repository.GetFilteredProductsAsync(category, name)
+            var stats = await _repository.GetFilteredProducts(category, name)
                 .GroupBy(p => 1)
                 .Select(g => new ProductStatsDto
                 {
@@ -53,7 +53,7 @@ namespace StorageApi.Controllers
                     AveragePrice = g.Average(p => p.Price)
                 }).FirstOrDefaultAsync();
 
-            return stats ?? new ProductStatsDto();
+            return Ok(stats ?? new ProductStatsDto());
         }
 
         // PUT: api/Products/5

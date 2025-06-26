@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using StorageApi.Data;
 using StorageApi.Models.Entities;
 
@@ -13,7 +12,7 @@ namespace StorageApi.Services
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public IQueryable<Product> GetFilteredProductsAsync(string? category, string? name)
+        public IQueryable<Product> GetFilteredProducts(string? category, string? name)
         {
             IQueryable<Product> products = _context.Products;
             if (!string.IsNullOrWhiteSpace(category))
