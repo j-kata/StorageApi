@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using StorageApi.Data;
 using StorageApi.Models.Entities;
 using StorageApi.Models.Dtos;
-using StorageApi.Mappings;
+using AutoMapper;
 
 namespace StorageApi.Controllers
 {
@@ -12,15 +12,18 @@ namespace StorageApi.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly StorageApiContext _context;
+        private readonly IMapper _mapper;
 
-        public ProductsController(StorageApiContext context)
+        public ProductsController(StorageApiContext context, IMapper mapper)
         {
             _context = context;
+
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         // GET: api/Products
         [HttpGet]
-        public ActionResult<IEnumerable<ProductDto>> GetProduct(string? category, string? name)
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProduct(string? category, string? name)
         {
             IQueryable<Product> products = _context.Product;
             if (!string.IsNullOrWhiteSpace(category))
@@ -28,7 +31,8 @@ namespace StorageApi.Controllers
             if (!string.IsNullOrWhiteSpace(name))
                 products = products.Where(p => p.Name == name);
 
-            return products.Select(ProductMappings.FromEntity).ToList();
+            var filtered = await products.ToListAsync();
+            return Ok(_mapper.Map<IEnumerable<ProductDto>>(filtered));
         }
 
 
@@ -39,11 +43,9 @@ namespace StorageApi.Controllers
             var product = await _context.Product.FindAsync(id);
 
             if (product == null)
-            {
                 return NotFound();
-            }
 
-            return ProductMappings.FromEntity(product);
+            return Ok(_mapper.Map<ProductDto>(product));
         }
 
         // GET: api/Products/stats
@@ -78,25 +80,17 @@ namespace StorageApi.Controllers
                 return BadRequest();
             }
 
-            var product = ProductMappings.ToEntity(productDto);
+            var product = await _context.Product.FindAsync(id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            _mapper.Map(productDto, product);
 
             _context.Entry(product).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProductExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -104,14 +98,16 @@ namespace StorageApi.Controllers
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(CreateProductDto productDto)
+        public async Task<ActionResult<Product>> PostProduct(CreateProductDto createProductDto)
         {
-            var product = ProductMappings.ToEntity(productDto);
+            var product = _mapper.Map<Product>(createProductDto);
 
             _context.Product.Add(product);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProduct", new { id = product.Id }, product);
+            var readProductDto = _mapper.Map<ReadProductDto>(product);
+
+            return CreatedAtAction("GetProduct", new { id = readProductDto.Id }, readProductDto);
         }
 
         // DELETE: api/Products/5
@@ -119,6 +115,7 @@ namespace StorageApi.Controllers
         public async Task<IActionResult> DeleteProduct(int id)
         {
             var product = await _context.Product.FindAsync(id);
+
             if (product == null)
             {
                 return NotFound();
