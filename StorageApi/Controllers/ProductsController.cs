@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using StorageApi.Data;
 using StorageApi.Models.Entities;
 using StorageApi.Models.Dtos;
 using AutoMapper;
 using StorageApi.Services;
-using NuGet.Protocol.Core.Types;
 
 namespace StorageApi.Controllers
 {

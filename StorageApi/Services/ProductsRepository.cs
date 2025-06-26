@@ -15,7 +15,7 @@ namespace StorageApi.Services
 
         public IQueryable<Product> GetFilteredProductsAsync(string? category, string? name)
         {
-            IQueryable<Product> products = _context.Product;
+            IQueryable<Product> products = _context.Products;
             if (!string.IsNullOrWhiteSpace(category))
                 products = products.Where(p => p.Category == category);
             if (!string.IsNullOrWhiteSpace(name))
@@ -26,17 +26,17 @@ namespace StorageApi.Services
 
         public async Task<Product?> GetProductAsync(int id)
         {
-            return await _context.Product.FindAsync(id);
+            return await _context.Products.FindAsync(id);
         }
 
         public void AddProduct(Product product)
         {
-            _context.Product.Add(product);
+            _context.Products.Add(product);
         }
 
         public void RemoveProduct(Product product)
         {
-            _context.Product.Remove(product);
+            _context.Products.Remove(product);
         }
 
         public async Task<bool> SaveChangesAsync()
