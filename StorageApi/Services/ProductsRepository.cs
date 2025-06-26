@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using StorageApi.Data;
 using StorageApi.Models.Entities;
 
@@ -16,9 +17,9 @@ namespace StorageApi.Services
         {
             IQueryable<Product> products = _context.Products;
             if (!string.IsNullOrWhiteSpace(category))
-                products = products.Where(p => p.Category.ToLower().Contains(category.ToLower()));
+                products = products.Where(p => EF.Functions.Like(p.Category, $"%{category}%"));
             if (!string.IsNullOrWhiteSpace(name))
-                products = products.Where(p => p.Name.ToLower().Contains(name.ToLower()));
+                products = products.Where(p => EF.Functions.Like(p.Name, $"%{name}%"));
 
             return products;
         }
