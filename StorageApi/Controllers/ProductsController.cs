@@ -4,6 +4,8 @@ using StorageApi.Data;
 using StorageApi.Models.Entities;
 using StorageApi.Models.Dtos;
 using AutoMapper;
+using StorageApi.Services;
+using NuGet.Protocol.Core.Types;
 
 namespace StorageApi.Controllers
 {
@@ -11,13 +13,12 @@ namespace StorageApi.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly StorageApiContext _context;
+        private readonly IProductsRepository _repository;
         private readonly IMapper _mapper;
 
-        public ProductsController(StorageApiContext context, IMapper mapper)
+        public ProductsController(IProductsRepository repository, IMapper mapper)
         {
-            _context = context;
-
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
@@ -25,14 +26,8 @@ namespace StorageApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetProduct(string? category, string? name)
         {
-            IQueryable<Product> products = _context.Product;
-            if (!string.IsNullOrWhiteSpace(category))
-                products = products.Where(p => p.Category == category);
-            if (!string.IsNullOrWhiteSpace(name))
-                products = products.Where(p => p.Name == name);
-
-            var filtered = await products.ToListAsync();
-            return Ok(_mapper.Map<IEnumerable<ProductDto>>(filtered));
+            var products = await _repository.GetFilteredProductsAsync(category, name);
+            return Ok(_mapper.Map<IEnumerable<ProductDto>>(products));
         }
 
 
@@ -40,7 +35,7 @@ namespace StorageApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductDto>> GetProduct(int id)
         {
-            var product = await _context.Product.FindAsync(id);
+            var product = await _repository.GetProductAsync(id);
 
             if (product == null)
                 return NotFound();
@@ -48,27 +43,27 @@ namespace StorageApi.Controllers
             return Ok(_mapper.Map<ProductDto>(product));
         }
 
-        // GET: api/Products/stats
-        [HttpGet("stats")]
-        public async Task<ActionResult<ProductsStatDto>> GetProductStats()
-        {
-            var products = await _context.Product.ToListAsync();
-            if (products.Count == 0)
-            {
-                return new ProductsStatDto { TotalPrice = 0, AveragePrice = 0, TotalCount = 0 };
-            }
+        // // GET: api/Products/stats
+        // [HttpGet("stats")]
+        // public async Task<ActionResult<ProductsStatDto>> GetProductStats()
+        // {
+        //     var products = await _context.Product.ToListAsync();
+        //     if (products.Count == 0)
+        //     {
+        //         return new ProductsStatDto { TotalPrice = 0, AveragePrice = 0, TotalCount = 0 };
+        //     }
 
-            var productsCount = products.Sum(product => product.Count);
-            var priceTotal = products.Aggregate(0, (sum, product) => sum + product.Price * product.Count);
-            var priceAverage = priceTotal / productsCount;
+        //     var productsCount = products.Sum(product => product.Count);
+        //     var priceTotal = products.Aggregate(0, (sum, product) => sum + product.Price * product.Count);
+        //     var priceAverage = priceTotal / productsCount;
 
-            return new ProductsStatDto
-            {
-                TotalPrice = priceTotal,
-                AveragePrice = priceAverage,
-                TotalCount = productsCount,
-            };
-        }
+        //     return new ProductsStatDto
+        //     {
+        //         TotalPrice = priceTotal,
+        //         AveragePrice = priceAverage,
+        //         TotalCount = productsCount,
+        //     };
+        // }
 
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -76,21 +71,15 @@ namespace StorageApi.Controllers
         public async Task<IActionResult> PutProduct(int id, UpdateProductDto productDto)
         {
             if (id != productDto.Id)
-            {
                 return BadRequest();
-            }
 
-            var product = await _context.Product.FindAsync(id);
+            var product = await _repository.GetProductAsync(id);
 
             if (product == null)
-            {
                 return NotFound();
-            }
 
             _mapper.Map(productDto, product);
-
-            _context.Entry(product).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            await _repository.SaveChangesAsync();
 
             return NoContent();
         }
@@ -102,8 +91,8 @@ namespace StorageApi.Controllers
         {
             var product = _mapper.Map<Product>(createProductDto);
 
-            _context.Product.Add(product);
-            await _context.SaveChangesAsync();
+            _repository.AddProduct(product);
+            await _repository.SaveChangesAsync();
 
             var readProductDto = _mapper.Map<ReadProductDto>(product);
 
@@ -114,22 +103,15 @@ namespace StorageApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            var product = await _context.Product.FindAsync(id);
+            var product = await _repository.GetProductAsync(id);
 
             if (product == null)
-            {
                 return NotFound();
-            }
 
-            _context.Product.Remove(product);
-            await _context.SaveChangesAsync();
+            _repository.RemoveProduct(product);
+            await _repository.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private bool ProductExists(int id)
-        {
-            return _context.Product.Any(e => e.Id == id);
         }
     }
 }

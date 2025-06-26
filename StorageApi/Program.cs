@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StorageApi.Data;
+using StorageApi.Models.Entities;
+using StorageApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +13,7 @@ builder.Services.AddDbContext<StorageApiContext>(options =>
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
+builder.Services.AddScoped<IProductsRepository, ProductsRepository>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
