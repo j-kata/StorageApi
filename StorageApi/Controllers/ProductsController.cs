@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StorageApi.Data;
 using StorageApi.Models.Entities;
@@ -25,12 +20,15 @@ namespace StorageApi.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProduct()
+        public ActionResult<IEnumerable<ProductDto>> GetProduct(string? category, string? name)
         {
-            var products = await _context.Product.ToListAsync();
-            var dtos = products.Select(p => ProductMappings.FromEntity(p)).ToList();
+            IQueryable<Product> products = _context.Product;
+            if (!string.IsNullOrWhiteSpace(category))
+                products = products.Where(p => p.Category == category);
+            if (!string.IsNullOrWhiteSpace(name))
+                products = products.Where(p => p.Name == name);
 
-            return dtos;
+            return products.Select(ProductMappings.FromEntity).ToList();
         }
 
 
