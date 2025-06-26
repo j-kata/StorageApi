@@ -33,6 +33,7 @@ namespace StorageApi.Controllers
             return dtos;
         }
 
+
         // GET: api/Products/5
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductDto>> GetProduct(int id)
@@ -45,6 +46,28 @@ namespace StorageApi.Controllers
             }
 
             return ProductMappings.FromEntity(product);
+        }
+
+        // GET: api/Products/stats
+        [HttpGet("stats")]
+        public async Task<ActionResult<ProductsStatDto>> GetProductStats()
+        {
+            var products = await _context.Product.ToListAsync();
+            if (products.Count == 0)
+            {
+                return new ProductsStatDto { TotalPrice = 0, AveragePrice = 0, TotalCount = 0 };
+            }
+
+            var productsCount = products.Sum(product => product.Count);
+            var priceTotal = products.Aggregate(0, (sum, product) => sum + product.Price * product.Count);
+            var priceAverage = priceTotal / productsCount;
+
+            return new ProductsStatDto
+            {
+                TotalPrice = priceTotal,
+                AveragePrice = priceAverage,
+                TotalCount = productsCount,
+            };
         }
 
         // PUT: api/Products/5
