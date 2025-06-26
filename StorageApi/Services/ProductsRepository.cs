@@ -17,9 +17,9 @@ namespace StorageApi.Services
         {
             IQueryable<Product> products = _context.Products;
             if (!string.IsNullOrWhiteSpace(category))
-                products = products.Where(p => p.Category == category);
+                products = products.Where(p => p.Category.ToLower().Contains(category.ToLower()));
             if (!string.IsNullOrWhiteSpace(name))
-                products = products.Where(p => p.Name == name);
+                products = products.Where(p => p.Name.ToLower().Contains(name.ToLower()));
 
             return products;
         }

@@ -13,6 +13,8 @@ namespace StorageApi.Models.Dtos
 
         [Range(0, 100000)]
         public int Price { get; set; }
+
+        [Required]
         public string Category { get; set; } = string.Empty;
         public string Shelf { get; set; } = string.Empty;
 
