@@ -6,7 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<StorageApiContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("StorageApiContext") ?? throw new InvalidOperationException("Connection string 'StorageApiContext' not found.")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("StorageApiContext")
+    ?? throw new InvalidOperationException("Connection string 'StorageApiContext' not found.")));
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

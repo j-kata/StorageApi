@@ -5,7 +5,7 @@
 namespace StorageApi.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class CreateProduct : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -14,14 +14,14 @@ namespace StorageApi.Migrations
                 name: "Product",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Price = table.Column<int>(type: "int", nullable: false),
-                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Shelf = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Count = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Price = table.Column<int>(type: "INTEGER", nullable: false),
+                    Category = table.Column<string>(type: "TEXT", nullable: false),
+                    Shelf = table.Column<string>(type: "TEXT", nullable: true),
+                    Count = table.Column<int>(type: "INTEGER", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
